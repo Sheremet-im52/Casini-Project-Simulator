@@ -5,6 +5,47 @@ const resultText = document.getElementById("result");
 const grid = document.getElementById("grid");
 const spinButton = document.getElementById("spin");
 const symbols = ["🐶", "🍖", "⭐", "💀", "1", "2", "3", "4", "5", "6", "7"];
+const historyDiv = document.getElementById("history");
+
+let historyQueue = [];
+
+function addToHistory(winLines, totalWin) {
+
+    historyQueue.push({
+        lines: winLines,
+        total: totalWin
+    });
+
+    if (historyQueue.length > 5) {
+        historyQueue.shift();
+    }
+
+    renderHistory();
+}
+
+function renderHistory() {
+
+    historyDiv.innerHTML = "";
+
+    for (let item of historyQueue) {
+
+        const div = document.createElement("div");
+
+        div.classList.add("history-item");
+
+        let text = "";
+
+        for (let line of item.lines) {
+            text += `${line.symbols} → +${line.amount}<br>`;
+        }
+
+        text += `<strong>Total: ${item.total}</strong>`;
+
+        div.innerHTML = text;
+
+        historyDiv.appendChild(div);
+    }
+}
 
 function generateGrid() {
     grid.innerHTML = "";
@@ -36,28 +77,55 @@ spinButton.addEventListener("click", () => {
 
     const gridData = generateGrid();
 
-    const win = checkWin(gridData);
+    const result = checkWin(gridData);
 
-    balance += win;
+    balance += result.totalWin;
 
     balanceText.innerText = "Balance: " + balance;
 
-    resultText.innerText = "Win: " + win;
-});
-function checkWin(grid) {
-    let win = 0;
-    for (let row of grid) {
-        for (let i = 0; i < 4; i++) {
-            if (row[i] === row[i+1] && row[i] === row[i+2]) {
+    resultText.innerText = "Total Win: " + result.totalWin;
 
-                if (row[i] === "🐶") win += 50;
-                else if (row[i] === "🍖") win += 40;
-                else if (row[i] === "⭐") win += 30;
-                else if (row[i] === "💀") win += 0;
-                else win += 10;
+    addToHistory(result.winLines, result.totalWin);
+});
+
+function checkWin(grid) {
+
+    let totalWin = 0;
+
+    let winLines = [];
+
+    for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
+
+        const row = grid[rowIndex];
+
+        for (let i = 0; i < 4; i++) {
+
+            if (
+                row[i] === row[i + 1] &&
+                row[i] === row[i + 2]
+            ) {
+
+                let amount = 0;
+
+                if (row[i] === "🐶") amount = 50;
+                else if (row[i] === "🍖") amount = 40;
+                else if (row[i] === "⭐") amount = 30;
+                else if (row[i] === "💀") amount = 0;
+                else amount = 10;
+
+                totalWin += amount;
+
+                winLines.push({
+                    symbols: `${row[i]} ${row[i]} ${row[i]}`,
+                    amount: amount,
+                    row: rowIndex + 1
+                });
             }
         }
     }
 
-    return win;
+    return {
+        totalWin,
+        winLines
+    };
 }
