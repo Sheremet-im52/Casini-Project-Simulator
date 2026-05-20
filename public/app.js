@@ -47,23 +47,38 @@ function renderHistory() {
     }
 }
 
-function generateGrid() {
+function renderGrid(gridData) {
+
     grid.innerHTML = "";
+
+    for (let row of gridData) {
+
+        for (let value of row) {
+
+            const cell = document.createElement("div");
+
+            cell.classList.add("cell");
+
+            cell.innerText = value;
+
+            grid.appendChild(cell);
+        }
+    }
+}
+
+function generateGrid() {
 
     let currentGrid = [];
 
     for (let i = 0; i < 6; i++) {
+
         let row = [];
 
         for (let j = 0; j < 6; j++) {
-            const cell = document.createElement("div");
-            cell.classList.add("cell");
 
             const randomIndex = Math.floor(Math.random() * symbols.length);
-            const value = symbols[randomIndex];
 
-            cell.innerText = value;
-            grid.appendChild(cell);
+            const value = symbols[randomIndex];
 
             row.push(value);
         }
@@ -73,19 +88,44 @@ function generateGrid() {
 
     return currentGrid;
 }
+
 spinButton.addEventListener("click", () => {
 
-    const gridData = generateGrid();
+    spinButton.disabled = true;
 
-    const result = checkWin(gridData);
+    let spinCount = 0;
 
-    balance += result.totalWin;
+    const spinAnimation = setInterval(() => {
 
-    balanceText.innerText = "Balance: " + balance;
+        const tempGrid = generateGrid();
 
-    resultText.innerText = "Total Win: " + result.totalWin;
+        renderGrid(tempGrid);
 
-    addToHistory(result.winLines, result.totalWin);
+        spinCount++;
+
+        if (spinCount >= 15) {
+
+            clearInterval(spinAnimation);
+
+            const finalGrid = generateGrid();
+
+            renderGrid(finalGrid);
+
+            const result = checkWin(finalGrid);
+
+            balance += result.totalWin;
+
+            balanceText.innerText = "Balance: " + balance;
+
+            resultText.innerText =
+                "Total Win: " + result.totalWin;
+
+            addToHistory(result.winLines, result.totalWin);
+
+            spinButton.disabled = false;
+        }
+
+    }, 100);
 });
 
 function checkWin(grid) {
